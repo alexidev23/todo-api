@@ -1,6 +1,6 @@
 import { pool } from "../db.js";
 
-const db = pool.promise();
+const db = pool;
 
 /**
  * GET /api-todo
