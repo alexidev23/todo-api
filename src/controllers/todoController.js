@@ -9,10 +9,17 @@ const db = pool;
 export async function getTodos(req, res) {
   try {
     const [rows] = await db.query("SELECT * FROM todos");
-    res.json({ success: true, data: rows });
+
+    // Convertir el campo completed (0/1) a booleano
+    const todos = rows.map(todo => ({
+      ...todo,
+      completed: !!todo.completed,
+    }));
+
+    res.json({ success: true, data: todos });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: "Error al obtener todos" });
+    console.error("❌ Error al obtener los todos:", err);
+    res.status(500).json({ success: false, error: "Error al obtener los todos" });
   }
 }
 
@@ -22,7 +29,7 @@ export async function getTodos(req, res) {
  */
 export async function addTodo(req, res) {
   try {
-    const { text, completed } = req.body;
+    const { text, completed = false } = req.body;
 
     if (!text || text.trim() === "") {
       return res.status(400).json({ success: false, error: "El campo 'text' es obligatorio" });
@@ -30,15 +37,15 @@ export async function addTodo(req, res) {
 
     const [result] = await db.query(
       "INSERT INTO todos (text, completed) VALUES (?, ?)",
-      [text, completed ?? false]
+      [text, completed ? 1 : 0]
     );
 
     res.status(201).json({
       success: true,
-      data: { id: result.insertId, text, completed: completed ?? false },
+      data: { id: result.insertId, text, completed: !!completed },
     });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error al agregar la tarea:", err);
     res.status(500).json({ success: false, error: "Error al agregar la tarea" });
   }
 }
@@ -52,22 +59,22 @@ export async function updateTodo(req, res) {
     const { id } = req.params;
     const { text, completed } = req.body;
 
-    if (!text || text.trim() === "") {
-      return res.status(400).json({ success: false, error: "El campo 'text' es obligatorio" });
+    if (text !== undefined && text.trim() === "") {
+      return res.status(400).json({ success: false, error: "El campo 'text' no puede estar vacío" });
     }
 
     const [result] = await db.query(
-      "UPDATE todos SET text = ?, completed = ? WHERE id = ?",
-      [text, completed ?? false, id]
+      "UPDATE todos SET text = COALESCE(?, text), completed = COALESCE(?, completed) WHERE id = ?",
+      [text ?? null, completed !== undefined ? (completed ? 1 : 0) : null, id]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, error: "Tarea no encontrada" });
     }
 
-    res.json({ success: true, data: { id, text, completed: completed ?? false } });
+    res.json({ success: true, data: { id, text, completed: !!completed } });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error al actualizar la tarea:", err);
     res.status(500).json({ success: false, error: "Error al actualizar la tarea" });
   }
 }
@@ -88,7 +95,7 @@ export async function deleteTodo(req, res) {
 
     res.json({ success: true, message: "Tarea eliminada correctamente" });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error al eliminar la tarea:", err);
     res.status(500).json({ success: false, error: "Error al eliminar la tarea" });
   }
 }

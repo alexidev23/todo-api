@@ -82,7 +82,7 @@ pnpm dev
 ## 🧑‍💻 Autor
 
 **Alexis Escobar**  
-Desarrollador Fullstack apasionado por el aprendizaje y la mejora continua.  
+Desarrollador FrontEnd Junior apasionado por el aprendizaje y la mejora continua.  
 📬 LinkedIn: [https://www.linkedin.com/in/alexis-escobar-95b491184/](https://www.linkedin.com/in/alexis-escobar-95b491184/)  
 🔗 Portafolio: [https://github.com/alexidev23](https://github.com/alexidev23)
 
